@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="CodeScanner:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/CodeScanner_jar</output-path>
+    <root id="archive" name="CodeScanner.jar">
+      <element id="module-output" name="CodeScanner" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/yaml/snakeyaml/1.23/snakeyaml-1.23.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
