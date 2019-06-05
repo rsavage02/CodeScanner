@@ -41,9 +41,5 @@ lineExclude:
   - .*tmp.*
 
 lineInclude:
-  - .*liveops.*
-  - .*live-ops.*
-
-replacementValues:
-  - liveOps:serenova
-  - live_ops:serenova
+  liveops: serenova
+  live-ops: serenova
