@@ -6,40 +6,51 @@
 # Description: This file holds configuration information including a list of
 # regular expressions to identify lines to exclude, and include for the callcenter app.
 #
+#  Constant                    Equivalent Embedded Flag Expression
+#  Pattern.CASE_INSENSITIVE    (?i)
+#  Pattern.COMMENTS            (?x)
+#  Pattern.MULTILINE           (?m)
+#  Pattern.DOTALL              (?s)
+#  Pattern.UNICODE_CASE        (?u)
+#  Pattern.UNIX_LINES          (?d)
+# Can also do multiples like {?im)
+#
 # Date       Init Note
 # 05/14/2019 RS   Created.
 #****************************************************************************
 
 urlPattern:
-  - "[a-z0-9.-]*liveops[a-z0-9.-]com"
-  - "[a-z0-9.-]*live-ops[a-z0-9.-]com"
+  - "(?imx)[a-z0-9.-]*liveops[a-z0-9.-]com"
+  - "(?i)[a-z0-9.-]*live-ops[a-z0-9.-]com"
 
 dirExclude:
-  - .*\.idea$
-  - .*\.cvsignore$
-  - .*\.tmp$
-  - .*CVS$
+  - (?i).*\.idea$
+  - (?i).*\.cvsignore$
+  - (?i).*\.tmp$
+  - (?i).*CVS$
 
 dirInclude:
   - .*
 
 fileExclude:
-  - .*\.idea$
-  - .*\.cvsignore$
-  - .*temp
-  - .*\.tmp$
+  - (?i).*\.idea$
+  - (?i).*\.cvsignore$
+  - (?i).*temp
+  - (?i).*\.tmp$
 
 fileInclude:
-  - .*\.js$
-  - .*\.pl$
-  - .*\.mpl$
-  - .*\.cgi$
-  - .*\.java$
+  - (?i).*\.js$
+  - (?i).*\.pl$
+  - (?i).*\.cgi$
+  - (?i).*\.java$
+  - (?i).*\.mpl$
 
 lineExclude:
-  - .*temp.*
-  - .*tmp.*
+  - (?i).*temp.*
+  - (?i).*tmp.*
 
 lineInclude:
   liveops: serenova
   live-ops: serenova
+  LIVEOPS: SERENOVA
+  LIVE-OPS: SERENOVA

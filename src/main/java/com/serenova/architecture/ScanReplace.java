@@ -12,9 +12,7 @@
  ****************************************************************************/
 package com.serenova.architecture;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,13 +44,15 @@ public class ScanReplace
     private Integer                     dirMatchCount = 0;
     private Integer                     dirLineMatchCount = 0;
     private Integer                     totalLineCount = 0;
+    private Integer                     totalReplaceCount = 0;
     private Integer                     lineMatchCount = 0;
     private Integer                     fileCount = 0;
     private Integer                     fileMatchCount = 0;
     private Integer                     fileLineMatchCount = 0;
     private static Boolean              doReplace = false;
-
+    private Map<String, String>         lineFindReplace = new HashMap<String, String>();
     ConcurrentHashMap<String,String>    distinctURLs = new ConcurrentHashMap<String,String>();
+    ConcurrentHashMap<String,String>    searchReplaoe = new ConcurrentHashMap<String,String>();
 
     /****************************************************************************
      * Method: ScanReplace()
@@ -69,7 +69,7 @@ public class ScanReplace
 
         ReadConfig();
 
-        System.out.println("Directory,Filename,Matching Line");
+        System.out.println("Directory,Filename,Line Number, Sub Line Number, Matching Line");
         FindFiles(startPath);
 
         SummaryReport();
@@ -96,23 +96,46 @@ public class ScanReplace
                 {
                 //System.out.println("Configuration object type: " + confEntry.getClass());
 
-                Map<String, List<String>> confMap = (Map<String, List<String>>) confEntry;
+                Map<String, Object> confMap = (Map<String, Object>) confEntry;
                 //System.out.println("conf contents: " + confMap);
 
-/*
+
                 for (String keyName : confMap.keySet())
                     {
-                    System.out.println(keyName + " = " + confMap.get(keyName).toString());
-                    }
-*/
+                    //System.out.println(keyName + " = " + confMap.get(keyName).toString());
 
-                lineExcludePattern  = ConvertToPattern(confMap.get("lineExclude").toString());
-                lineIncludePattern  = ConvertToPattern(confMap.get("lineInclude").toString());
-                fileExcludePattern  = ConvertToPattern(confMap.get("fileExclude").toString());
-                fileIncludePattern  = ConvertToPattern(confMap.get("fileInclude").toString());
-                dirExcludePattern   = ConvertToPattern(confMap.get("dirExclude").toString());
-                dirIncludePattern   = ConvertToPattern(confMap.get("dirInclude").toString());
-                urlPattern          = ConvertToPattern(confMap.get("urlPattern").toString());
+                    switch (keyName)
+                        {
+                        case "lineInclude":
+
+                            for ( String key :  ((Map<String, String>) confMap.get(keyName)).keySet())
+                                {
+                                lineFindReplace.put(key, ((Map<String, String>) confMap.get(keyName)).get(key).toString());
+                                }
+
+                            lineIncludePattern = ConvertToPattern(lineFindReplace.keySet().toString());
+
+                            break;
+                        case "lineExclude":
+                            lineExcludePattern = ConvertToPattern(confMap.get(keyName).toString());
+                            break;
+                        case "fileExclude":
+                            fileExcludePattern = ConvertToPattern(confMap.get(keyName).toString());
+                            break;
+                        case "fileInclude":
+                            fileIncludePattern = ConvertToPattern(confMap.get(keyName).toString());
+                            break;
+                        case "dirExclude":
+                            dirExcludePattern = ConvertToPattern(confMap.get(keyName).toString());
+                            break;
+                        case "dirInclude":
+                            dirIncludePattern = ConvertToPattern(confMap.get(keyName).toString());
+                            break;
+                        case "urlPattern":
+                            urlPattern = ConvertToPattern(confMap.get(keyName).toString());
+                            break;
+                        }
+                    }
                 }
 
             } catch (Exception e)
@@ -150,8 +173,10 @@ public class ScanReplace
         System.out.println("*          Files matched: " + fileMatchCount);
         System.out.println("*     Files Line matched: " + fileLineMatchCount);
         System.out.println("*");
+        System.out.println("*   Line replace pattern: " + lineFindReplace.toString());
         System.out.println("*   Line include pattern: " + lineIncludePattern.toString());
         System.out.println("*   Line exclude pattern: " + lineExcludePattern.toString());
+        System.out.println("*         Lines replaced: " + totalReplaceCount);
         System.out.println("*          Lines scanned: " + totalLineCount);
         System.out.println("*          Lines matched: " + lineMatchCount);
         System.out.println("*");
@@ -176,12 +201,83 @@ public class ScanReplace
     private Pattern ConvertToPattern(String configEntry)
         {
         String finalResult = configEntry;
+        int    regexFlags = 0;
 
         finalResult = finalResult.replace(", ","|");
 
         finalResult = finalResult.substring(1,finalResult.length()-1);
 
-        return(Pattern.compile(finalResult,Pattern.CASE_INSENSITIVE));
+        regexFlags = ConvertRegExOptions(finalResult);
+
+        return(Pattern.compile(finalResult, regexFlags));
+        }
+
+    /****************************************************************************
+     * Method: ConvertRegExOptions()
+     * Author: Ron Savage
+     *   Date: 05/13/2019
+     *
+     * Description: This method the regex options inside the (?) to the equivalent
+     * Java flag values.
+     *
+     * #  Constant                    Equivalent Embedded Flag Expression
+     * #  Pattern.CASE_INSENSITIVE    (?i)
+     * #  Pattern.COMMENTS            (?x)
+     * #  Pattern.MULTILINE           (?m)
+     * #  Pattern.DOTALL              (?s)
+     * #  Pattern.UNICODE_CASE        (?u)
+     * #  Pattern.UNIX_LINES          (?d)
+     * # Can also do multiples like {?im)
+     ****************************************************************************/
+    private int ConvertRegExOptions(String configEntry)
+        {
+        int regExFlags = 0;
+        String optionsRegex = "^\\(?(.+)\\)";
+        String optionGroup = "";
+        Pattern optionsPattern = Pattern.compile(optionsRegex);
+
+        for (String regex : configEntry.split("[|]"))
+            {
+            Matcher optionsMatcher = optionsPattern.matcher(regex);
+
+            if (optionsMatcher.find())
+                {
+                optionGroup = optionsMatcher.group(1);
+
+                if (optionGroup.contains("i")) regExFlags |= Pattern.CASE_INSENSITIVE;
+                if (optionGroup.contains("x")) regExFlags |= Pattern.COMMENTS;
+                if (optionGroup.contains("m")) regExFlags |= Pattern.MULTILINE;
+                if (optionGroup.contains("s")) regExFlags |= Pattern.DOTALL;
+                if (optionGroup.contains("u")) regExFlags |= Pattern.UNICODE_CASE;
+                if (optionGroup.contains("d")) regExFlags |= Pattern.UNIX_LINES;
+                }
+            }
+
+        return(regExFlags);
+        }
+
+    /****************************************************************************
+     * Method: DoFindReplace()
+     * Author: Ron Savage
+     *   Date: 05/31/2019
+     *
+     * Description: This method searches for and replaces matches with the replacement
+     * text specified in the config.
+     ****************************************************************************/
+    private String DoFindReplace(String line)
+        {
+        String newLine = line;
+
+        for (String findKey : lineFindReplace.keySet())
+            {
+            String repValue =  lineFindReplace.get(findKey).toString();
+
+            Pattern findPattern = Pattern.compile(findKey);
+            Matcher repMatcher = findPattern.matcher(newLine);
+
+            newLine = repMatcher.replaceAll(repValue);
+            }
+        return(newLine);
         }
 
     /****************************************************************************
@@ -192,40 +288,78 @@ public class ScanReplace
          * Description: This method reads each line in the file and calls the pattern
          * match method to check for a match of the search parameters.
          ****************************************************************************/
-    private void Scan(String fileToScan)
+    private void Scan(String fileToScan, String outputFile)
         {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(fileToScan)))
             {
             String line;
+            String csvLine = "";
             Integer lineCount = 0;
+            Integer subLineCount = 0;
+            File outFile;
+            BufferedWriter bufferedOutfileWriter = null;
 
-            while ((line = reader.readLine()) != null)
+            try
                 {
-                totalLineCount++;
-                lineCount++;
-
-                if (HasMatch(line, lineIncludePattern, lineExcludePattern))
+                if (doReplace)
                     {
-                    lineMatchCount++;
+                    bufferedOutfileWriter = new BufferedWriter(new FileWriter(new File(outputFile)));
+                    }
 
-                    ExtractURLs(line);
+                while ((line = reader.readLine()) != null)
+                    {
+                    totalLineCount++;
+                    lineCount++;
 
-                    while (line.length() > 32000)
+                    subLineCount = 0;
+                    String[] subLines = line.split("(?<=;)");
+                    for (String subLine : subLines)
                         {
-                        System.out.println(Paths.get(fileToScan).getParent().toString() + "," + Paths.get(fileToScan).getFileName() + ",\"" + lineCount + ": " + line.substring(0,32000).replace("\"", "\"\"") + "\"");
+                        subLineCount++;
 
-                        line = line.substring(32001,line.length());
+                        if (HasMatch(subLine, lineIncludePattern, lineExcludePattern))
+                            {
+                            lineMatchCount++;
+
+                            ExtractURLs(subLine);
+
+                            if (doReplace && bufferedOutfileWriter != null)
+                                {
+                                subLine = DoFindReplace(subLine);
+                                bufferedOutfileWriter.write(subLine);
+                                }
+
+                            csvLine = (Paths.get(fileToScan).getParent().toString() + "," + Paths.get(fileToScan).getFileName() + "," + lineCount + "," + subLineCount + ",\"" + subLine.replace("\"", "\"\"") + "\"");
+                            System.out.println(csvLine);
+                            } else
+                            {
+                            if (doReplace && bufferedOutfileWriter != null)
+                                {
+                                bufferedOutfileWriter.write(subLine);
+                                }
+                            }
                         }
 
-                    System.out.println(Paths.get(fileToScan).getParent().toString() + "," + Paths.get(fileToScan).getFileName() + ",\"" + lineCount + ": " + line.replace("\"", "\"\"") + "\"");
+                    if (doReplace && bufferedOutfileWriter != null)
+                        {
+                        bufferedOutfileWriter.newLine();
+                        }
                     }
-                }
 
-            //System.out.println("");
+                if (doReplace && bufferedOutfileWriter != null)
+                    {
+                    bufferedOutfileWriter.close();
+                    }
+
+                } catch (Exception o)
+                {
+                System.err.format("Exception occurred trying to write '%s'.", fileToScan);
+                o.printStackTrace();
+                }
             } catch (Exception e)
             {
-            System.err.format("Exception occurred trying to read '%s'.", confFileName);
+            System.err.format("Exception occurred trying to read '%s'.", fileToScan);
             e.printStackTrace();
             }
 
@@ -313,15 +447,28 @@ public class ScanReplace
                         {
                         fileMatchCount++;
 
-                        //System.out.println(indentBuffer + thisPath.toString());
-                        Scan(thisPath.toAbsolutePath().toString());
+                        File refFile;
+                        if (doReplace)
+                            {
+                            refFile = new File(thisPath.toString() + "_bak");
+                            file.renameTo(refFile);
+
+                            //System.out.println(indentBuffer + thisPath.toString());
+                            Scan(refFile.toPath().toAbsolutePath().toString(),thisPath.toAbsolutePath().toString());
+                            }
+                        else
+                            {
+                            //System.out.println(indentBuffer + thisPath.toString());
+                            Scan(file.toPath().toAbsolutePath().toString(),thisPath.toAbsolutePath().toString());
+                            }
+
                         }
                     }
                 }
             }
         catch (Exception e)
             {
-            System.err.format("Exception occurred trying to read '%s'.", confFileName);
+            System.err.format("Exception occurred trying to read '%s'.", findPath);
             e.printStackTrace();
             }
 
@@ -344,7 +491,7 @@ public class ScanReplace
 
         try
             {
-            if (includeMatcher.matches() && !excludeMatcher.matches())
+            if (includeMatcher.find() && !excludeMatcher.find())
                 {
                 foundMatch = true;
                 }
@@ -377,7 +524,7 @@ public class ScanReplace
             configFile   = args[0];
             startDir     = args[1];
 
-            if (args.length > 2)
+            if (args.length > 2 && !args[2].contains(">"))
                 {
                 if (args[2].equalsIgnoreCase("replace"))
                     {
@@ -387,7 +534,7 @@ public class ScanReplace
             }
         else
             {
-            System.out.println("Syntax: java -jar CodeScanner.jar <config file> <start dir> [replace]");
+            System.out.println("Syntax: java -jar CodeScanner.jar <config file> <start dir> [replace] [> <outputfile.csv>]");
             }
 
         scanRep = new ScanReplace(configFile,startDir);
