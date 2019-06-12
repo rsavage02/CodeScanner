@@ -8,6 +8,7 @@
  * the yamlConfig file.
  *
  * Date       Init Note
+ * 06/12/2019 RS   Added to github.com/rsavage02/CodeScanner repository.
  * 05/13/2019 RS   Created.
  ****************************************************************************/
 package com.serenova.architecture;
