@@ -1,0 +1,49 @@
+#***************************************************************************
+#     File: callflow.yaml
+#   Author: Ron Savage
+#     Date: 06/13/2019
+#
+# Description: This file holds configuration information including a list of
+# regular expressions to identify lines to exclude, and include for the callflow app.
+#
+#  Constant                    Equivalent Embedded Flag Expression
+#  Pattern.CASE_INSENSITIVE    (?i)
+#  Pattern.COMMENTS            (?x)
+#  Pattern.MULTILINE           (?m)
+#  Pattern.DOTALL              (?s)
+#  Pattern.UNICODE_CASE        (?u)
+#  Pattern.UNIX_LINES          (?d)
+# Can also do multiples like {?im)
+#
+# Date       Init Note
+# 06/13/2019 RS   Created.
+#****************************************************************************
+
+urlPattern:
+  - "(?imx)[a-z0-9.-]*liveops[a-z0-9.-]com"
+  - "(?i)[a-z0-9.-]*live-ops[a-z0-9.-]com"
+
+dirExclude:
+  - (?i).*\.idea$
+  - (?i).*\.git$
+  - (?i).*\.bundle$
+  - (?i).*\.log$
+  - (?i).*\.tmp$
+
+dirInclude:
+  - .*
+
+fileExclude:
+  - (?i).*\.tmp$
+
+fileInclude:
+  - .*
+
+lineExclude:
+  -
+
+lineInclude:
+  liveops: serenova
+  live-ops: serenova
+  LIVEOPS: SERENOVA
+  LIVE-OPS: SERENOVA
