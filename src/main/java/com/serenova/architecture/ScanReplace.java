@@ -7,9 +7,11 @@
  * to identify any line that meets one of the search criteria specified in
  * the yamlConfig file.
  *
- * Date       Init Note
- * 06/12/2019 RS   Added to github.com/rsavage02/CodeScanner repository.
- * 05/13/2019 RS   Created.
+ * Date       Init  Note
+ * 06/20/2019 RS    Added .toAbsolutePath() for cvsLine format to remove dups if
+ *                  a relative path is provided on the command line.
+ * 06/12/2019 RS    Added to github.com/rsavage02/CodeScanner repository.
+ * 05/13/2019 RS    Created.
  ****************************************************************************/
 package com.serenova.architecture;
 
@@ -331,7 +333,7 @@ public class ScanReplace
                                 bufferedOutfileWriter.write(subLine);
                                 }
 
-                            csvLine = (Paths.get(fileToScan).getParent().toString() + "," + Paths.get(fileToScan).getFileName() + "," + lineCount + "," + subLineCount + ",\"" + subLine.replace("\"", "\"\"") + "\"");
+                            csvLine = (Paths.get(fileToScan).getParent().toAbsolutePath().toString() + "," + Paths.get(fileToScan).getFileName() + "," + lineCount + "," + subLineCount + ",\"" + subLine.replace("\"", "\"\"") + "\"");
                             System.out.println(csvLine);
                             } else
                             {
