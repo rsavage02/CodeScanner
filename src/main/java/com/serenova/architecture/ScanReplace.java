@@ -73,7 +73,7 @@ public class ScanReplace
         ReadConfig();
 
         System.out.println("Directory,Filename,Line Number, Sub Line Number, Matching Line");
-        FindFiles(startPath);
+        FindFiles(startPath.toAbsolutePath());
 
         SummaryReport();
         }
@@ -418,7 +418,7 @@ public class ScanReplace
                         {
                         dirLineMatchCount++;
 
-                        System.out.println(thisPath.toString() + ",directory,none");
+                        System.out.println(thisPath.toAbsolutePath().toString() + ",directory,none");
                         }
 
                     if (HasMatch(thisPath.toString(), dirIncludePattern, dirExcludePattern))
@@ -429,7 +429,7 @@ public class ScanReplace
                         indentBuffer = "";
 
                         //System.out.println(indentBuffer + thisPath.toString() + " ...");
-                        FindFiles(thisPath);
+                        FindFiles(thisPath.toAbsolutePath());
 
                         folderLevel--;
                         //indentBuffer = String.join("", Collections.nCopies(folderLevel * 3, " "));
