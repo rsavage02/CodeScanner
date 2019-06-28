@@ -43,7 +43,7 @@ lineExclude:
   -
 
 lineInclude:
-  "(?imx)[a-z0-9.-]*liveops[a-z0-9.-]com": $1serenova$2
-  "(?i)[a-z0-9.-]*live-ops[a-z0-9.-]com": $1serenova$2
-  "(?imx)[a-z0-9.-]*LIVEOPS[a-z0-9.-]com": $1SERENOVA$2
-  "(?imx)[a-z0-9.-]*LIVE-OPS[a-z0-9.-]com": $1SERENOVA$2
+  "([a-z0-9.-]*)liveops([a-z0-9.-]com)": $1serenova$2
+  "([a-z0-9.-]*)live-ops([a-z0-9.-]com)": $1serenova$2
+  "([a-z0-9.-]*)LIVEOPS([a-z0-9.-]com)": $1SERENOVA$2
+  "([a-z0-9.-]*)LIVE-OPS([a-z0-9.-]com)": $1SERENOVA$2
