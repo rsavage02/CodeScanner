@@ -51,7 +51,7 @@ lineExclude:
   - (?i).*tmp.*
 
 lineInclude:
-  liveops: serenova
-  live-ops: serenova
-  LIVEOPS: SERENOVA
-  LIVE-OPS: SERENOVA
+  "([a-zA-Z0-9.-]*)liveops([a-zA-Z0-9\)\\.-]*[(]*com)[^a-zA-Z0-9.]": $1serenova$2
+  "([a-zA-Z0-9.-]*)live-ops([a-zA-Z0-9\)\\.-]*[(]*com)[^a-zA-Z0-9.]": $1serenova$2
+  "([a-zA-Z0-9.-]*)LIVEOPS([a-zA-Z0-9\)\\.-]*[(]*com)[^a-zA-Z0-9.]": $1SERENOVA$2
+  "([a-zA-Z0-9.-]*)LIVE-OPS([a-zA-Z0-9\)\\.-]*[(]*com)[^a-zA-Z0-9.]": $1SERENOVA$2

@@ -16,6 +16,8 @@
 package com.serenova.architecture;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -187,7 +189,19 @@ public class ScanReplace
 
         for (String url : distinctURLs.values())
             {
-            System.out.println("*   " + url);
+            String ipAddress = "";
+            try
+                {
+                InetAddress address = InetAddress.getByName(new URL("https://" + url).getHost());
+                ipAddress = address.getHostAddress();
+
+                }
+                catch(Exception ex)
+                {
+                ipAddress = "not found";
+                }
+
+            System.out.println("*   " + url + " (" + ipAddress + ")");
             }
 
         System.out.println("*");
