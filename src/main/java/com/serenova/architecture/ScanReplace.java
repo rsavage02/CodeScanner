@@ -313,8 +313,8 @@ public class ScanReplace
             String line;
             String csvLine = "";
             Integer lineCount = 0;
+            Integer replacementCount = 0;
             Integer subLineCount = 0;
-            File outFile;
             BufferedWriter bufferedOutfileWriter = null;
 
             try
@@ -338,6 +338,7 @@ public class ScanReplace
                         if (HasMatch(subLine, lineIncludePattern, lineExcludePattern))
                             {
                             lineMatchCount++;
+                            replacementCount++;
 
                             ExtractURLs(subLine);
 
@@ -367,6 +368,23 @@ public class ScanReplace
                 if (doReplace && bufferedOutfileWriter != null)
                     {
                     bufferedOutfileWriter.close();
+
+                    if (replacementCount == 0)
+                        {
+                        File origFile = new File(fileToScan);
+                        File newFile = new File(outputFile);
+
+                        // Delete the new file since no changes were made and restore the original
+                        newFile.delete();
+                        origFile.renameTo(newFile);
+
+                        }
+                    else
+                        {
+                        // Set new file permissions and owner the same as the original file
+                        Files.setPosixFilePermissions(Paths.get(outputFile), Files.getPosixFilePermissions(Paths.get(fileToScan)));
+                        Files.setOwner(Paths.get(outputFile), Files.getOwner(Paths.get(fileToScan)));
+                        }
                     }
 
                 } catch (Exception o)
